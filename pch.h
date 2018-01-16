@@ -26,5 +26,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QByteArray>
 #include <QClipboard>
 #include <QQmlContext>
+#include <QtNetwork>
+#include <QDateTime>
+#include <QDesktopServices>
+
+#ifdef _MSC_VER
+#pragma execution_character_set("utf-8")
+#endif
 
 #endif // PCH_H

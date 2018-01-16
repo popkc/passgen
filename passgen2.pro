@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick
+QT += qml quick network
 
 PRECOMPILED_HEADER=pch.h
 PRECOMPILED_DIR=pch
@@ -8,7 +8,8 @@ PRECOMPILED_DIR=pch
 CONFIG += c++11 precompile_header
 
 SOURCES += main.cpp \
-    cppapp.cpp
+    cppapp.cpp \
+    baidupcssync.cpp
 
 RESOURCES += qml.qrc
 
@@ -36,4 +37,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     cppapp.h \
-    pch.h
+    pch.h \
+    baidupcssync.h

@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "pch.h"
 
+class BaiduPcsSync;
+
 class CppApp : public QObject
 {
     Q_OBJECT
@@ -26,6 +28,7 @@ public:
     explicit CppApp(QObject *parent = 0);
     QObject *root;
     QSettings settings;
+    BaiduPcsSync *bps;
     
     Q_INVOKABLE void setSettingsValue(const QString &key,const QVariant &value);
     Q_INVOKABLE QVariant getSettingsValue(const QString &key,const QVariant &defaultValue=QVariant());
@@ -35,9 +38,20 @@ public:
     Q_INVOKABLE const QString genPass(const QString &user,const QString &basepass,const QString &site,int len,
                                       bool dx,bool xx,bool sz,bool ts);
     Q_INVOKABLE QStringList insertString(QStringList sl, const QString &s);
+
+    Q_INVOKABLE void syncDownload();
+    Q_INVOKABLE void syncUpload();
+    Q_INVOKABLE void syncAuth(const QString &authCode);
+
+    Q_INVOKABLE void syncImport(bool isImport, const QString &filepath);
 signals:
-    
+    void needAuth();
+    void showMsg(const QString &title, const QString &content);
+    void enableMenu();
+    void reload();
 public slots:
 };
+
+extern CppApp* cppApp;
 
 #endif // CPPAPP_H

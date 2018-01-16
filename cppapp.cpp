@@ -15,11 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "cppapp.h"
+#include "baidupcssync.h"
 
 CppApp::CppApp(QObject *parent) : QObject(parent),
     settings("popkc","passgen")
 {
-    
+    bps=new BaiduPcsSync(this);
 }
 
 void CppApp::setSettingsValue(const QString &key, const QVariant &value)
@@ -128,4 +129,59 @@ QStringList CppApp::insertString(QStringList sl, const QString &s)
     sl.append(s);
     sl.sort();
     return sl;
+}
+
+void CppApp::syncDownload()
+{
+    bps->download();
+}
+
+void CppApp::syncUpload()
+{
+    bps->upload();
+}
+
+void CppApp::syncAuth(const QString &authCode)
+{
+    bps->auth(authCode);
+}
+
+#define ERRORTEST(x,m) if(x) {emit showMsg("错误",(m));return;}
+
+void CppApp::syncImport(bool isImport, const QString &filepath)
+{
+    QUrl url(filepath);
+    QFile f(url.toLocalFile());
+    if(isImport) {
+        ERRORTEST(!f.open(QIODevice::ReadOnly), "无法打开文件"+url.toLocalFile());
+        QDataStream ds(&f);
+        int len;
+        ds>>len;
+        ERRORTEST(ds.status()!=QDataStream::Ok || len<0, "文件读取失败");
+        QList<QPair<QString, QVariant>> confMap;
+        while(len>0) {
+            QPair<QString, QVariant> p;
+            ds>>p.first>>p.second;
+            ERRORTEST(ds.status()!=QDataStream::Ok, "文件读取失败");
+            confMap.append(p);
+
+            len--;
+        }
+
+        for(const auto &p : confMap) {
+            settings.setValue(p.first, p.second);
+        }
+        emit reload();
+    }
+    else {
+        ERRORTEST(!f.open(QIODevice::WriteOnly), "无法打开文件"+url.toLocalFile());
+        QDataStream ds(&f);
+        auto sl=settings.allKeys();
+        ds<<sl.length();
+        for(const QString &s : sl) {
+            ds<<s<<settings.value(s);
+        }
+    }
+    f.close();
+    emit showMsg("提示", "同步成功");
 }

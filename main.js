@@ -30,20 +30,28 @@ function setOption(prefix) {
     cppApp.setSettingsValue(prefix+"checkts",checkTs.checked);
 }
 
-function init() {
+function init2() {
     usrAndSite.model=cppApp.getStringList("usrandsite");
     usrAndSite.currentIndex=cppApp.getSettingsValue("usindex",0);
     basePass.text=cppApp.getSettingsValue("basepass","");
     userCb.text=cppApp.getSettingsValue("usercur","");
     siteCb.text=cppApp.getSettingsValue("sitecur","");
-    
+
     getOption("");
+}
+
+function init() {
+    cppApp.needAuth.connect(needAuth);
+    cppApp.showMsg.connect(showMsg);
+    cppApp.enableMenu.connect(enableMenu);
+    cppApp.reload.connect(init2);
+
+    init2();
 }
 
 function closing() {
     cppApp.setSettingsValue("usercur",userCb.text);
     cppApp.setSettingsValue("sitecur",siteCb.text);
-    cppApp.setSettingsValue("usrandsite",usrAndSite.model);
     cppApp.setSettingsValue("basepass",basePass.text);
     cppApp.setSettingsValue("usindex",usrAndSite.currentIndex);
     
@@ -52,7 +60,7 @@ function closing() {
 
 function gen() {
     if(userCb.text===""||basePass.text===""||siteCb.text==="") {
-        msgBox.visible=true;
+        showMsg("错误", "不能为空");
         return;
     }
 
@@ -61,6 +69,7 @@ function gen() {
         var t=usrAndSite.model;
         t=cppApp.insertString(t,uas);
         usrAndSite.model=t;
+        cppApp.setSettingsValue("usrandsite",usrAndSite.model);
     }
     setOption(uas+"/");
 
@@ -82,15 +91,29 @@ function delItem(cb) {
         k.splice(i,1);
         cb.model=k;
         cb.editText="";
+        cppApp.setSettingsValue("usrandsite",usrAndSite.model);
     }
 }
 
 function changeus(index) {
     var t=usrAndSite.textAt(index);
     var i=t.indexOf(" ");
-    var ckd;
     siteCb.text=t.substr(0,i);
     userCb.text=t.substr(i+1);
 
     getOption(t+"/");
+}
+
+function needAuth() {
+    dialogAuth.visible=true;
+}
+
+function showMsg(title, content) {
+    msgBox.title=title;
+    msgBox.text=content;
+    msgBox.visible=true;
+}
+
+function enableMenu() {
+    menubar.enabled=true;
 }

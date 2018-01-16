@@ -33,6 +33,6 @@ int main(int argc, char *argv[])
 
     //auto k=qgetenv("LD_LIBRARY_PATH");
     //qInfo()<<k;
-    
+
     return app.exec();
 }

@@ -26,6 +26,49 @@ ApplicationWindow {
     height: 300
     title: qsTr("统一密码生成器")
 
+    menuBar: MenuBar {
+        Menu {
+            id: menubar;
+            title: "同步";
+
+            MenuItem {
+                text:"导入";
+                onTriggered: {
+                    fileDialg.isImport=true;
+                    fileDialg.selectExisting=true;
+                    fileDialg.visible=true;
+                }
+            }
+
+            MenuItem {
+                text:"导出";
+                onTriggered: {
+                    fileDialg.isImport=false;
+                    fileDialg.selectExisting=false;
+                    fileDialg.visible=true;
+                }
+            }
+
+            MenuItem {
+                text: "下载";
+                enabled: false;
+                onTriggered: {
+                    menubar.enabled=false;
+                    cppApp.syncDownload();
+                }
+            }
+
+            MenuItem {
+                text: "上传";
+                enabled: false;
+                onTriggered: {
+                    menubar.enabled=false;
+                    cppApp.syncUpload();
+                }
+            }
+        }
+    }
+
     Flickable {
         anchors.fill: parent;
         anchors.margins: 5;
@@ -138,14 +181,42 @@ ApplicationWindow {
     }
     
     MessageDialog {
-        text: "不能为空。";
-        title: "错误";
         id:msgBox;
     }
+
     Timer {
         interval: 3000;
         onTriggered: Logic.timer();
         id:timerCopied;
+    }
+
+    Dialog {
+        id: dialogAuth;
+        standardButtons: StandardButton.Ok|StandardButton.Cancel;
+        title: "百度网盘授权码"
+        Column {
+            Text {
+                text: "请在打开的浏览器中授权本应用使用您的百度网盘，并将从百度获取的Authorization Code填入下方文本框中。";
+                wrapMode: Text.Wrap;
+                width: 200;
+            }
+            TextField {
+                id: authCode;
+                width:200;
+            }
+        }
+        width:220;
+        onAccepted: {
+            cppApp.syncAuth(authCode.text);
+        }
+    }
+
+    FileDialog {
+        id: fileDialg;
+        property bool isImport;
+        onAccepted: {
+            cppApp.syncImport(isImport, fileDialg.fileUrl);
+        }
     }
     
     Component.onCompleted: Logic.init();
