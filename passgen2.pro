@@ -12,6 +12,7 @@ SOURCES += main.cpp \
     baidupcssync.cpp
 
 RESOURCES += qml.qrc
+QMAKE_PROJECT_DEPTH = 0
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

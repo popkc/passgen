@@ -18,7 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "baidupcssync.h"
 
 CppApp::CppApp(QObject *parent) : QObject(parent),
+#ifdef Q_OS_WIN
+    settings("passgen.ini", QSettings::IniFormat)
+#else
     settings("popkc","passgen")
+#endif
 {
     bps=new BaiduPcsSync(this);
 }
