@@ -35,6 +35,7 @@ public slots:
     void syncError(QNetworkReply::NetworkError err);
     void downloadFinished();
     void uploadFinished();
+
 private:
     void tokenCheck();
     void getNewToken();

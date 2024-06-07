@@ -17,29 +17,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "baidupcssync.h"
 #include "cppapp.h"
 
-const QStringList BaiduPcsSync::keyList(QStringList() << "access_token" << "expires_in" << "refresh_token"
-                          << "session_key" << "session_secret");
+const QStringList BaiduPcsSync::keyList(QStringList() << "access_token"
+                                                      << "expires_in"
+                                                      << "refresh_token"
+                                                      << "session_key"
+                                                      << "session_secret");
 
-BaiduPcsSync::BaiduPcsSync(QObject *parent) : QObject(parent), nm(this)
+BaiduPcsSync::BaiduPcsSync(QObject *parent)
+    : QObject(parent)
+    , nm(this)
 {
-    syncing=false;
+    syncing = false;
 }
 
 void BaiduPcsSync::download()
 {
-    job=JOB_DOWNLOAD;
+    job = JOB_DOWNLOAD;
     tokenCheck();
 }
 
 void BaiduPcsSync::upload()
 {
-    job=JOB_UPLOAD;
+    job = JOB_UPLOAD;
     tokenCheck();
 }
 
 void BaiduPcsSync::auth(const QString &authCode)
 {
-    if(authCode.isEmpty()) {
+    if (authCode.isEmpty()) {
         emit cppApp->showMsg("错误", "授权码不能为空！");
         enableMenu();
         return;
@@ -52,7 +57,7 @@ void BaiduPcsSync::auth(const QString &authCode)
     postData.addQueryItem("client_id", "e5B4NHFV9hUd50pe3uCGMFyO");
     postData.addQueryItem("client_secret", "95VyImDHFzRzyowuk7q4QVIPbBKGT5Il");
     postData.addQueryItem("redirect_uri", "oob");
-    reply=nm.post(req, postData.toString(QUrl::FullyEncoded).toUtf8());
+    reply = nm.post(req, postData.toString(QUrl::FullyEncoded).toUtf8());
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     connect(reply, &QNetworkReply::finished, this, &BaiduPcsSync::getTokenFinished);
 }
@@ -60,39 +65,39 @@ void BaiduPcsSync::auth(const QString &authCode)
 void BaiduPcsSync::getTokenFinished()
 {
     QJsonParseError err;
-    QJsonDocument jd=QJsonDocument::fromJson(reply->readAll(), &err);
+    QJsonDocument jd = QJsonDocument::fromJson(reply->readAll(), &err);
     reply->deleteLater();
-    if(err.error != QJsonParseError::NoError) {
+    if (err.error != QJsonParseError::NoError) {
         emit cppApp->showMsg("get token数据格式错误", err.errorString());
         enableMenu();
         return;
     }
 
-    auto jroot=jd.object();
-    if(jroot.contains("error")) {
-        emit cppApp->showMsg("get token error", jroot["error"].toString()+"\n"+jroot["error_description"].toString());
+    auto jroot = jd.object();
+    if (jroot.contains("error")) {
+        emit cppApp->showMsg("get token error", jroot["error"].toString() + "\n" + jroot["error_description"].toString());
         enableMenu();
         return;
     }
-    if(jroot["scope"].toString().indexOf("netdisk")==-1) {
+    if (jroot["scope"].toString().indexOf("netdisk") == -1) {
         emit cppApp->showMsg("错误", "您未授权本应用使用百度网盘。");
         enableMenu();
         return;
     }
 
-    for(const QString &key : keyList) {
-        if(!jroot.contains(key)) {
-            emit cppApp->showMsg("get token数据错误", "未找到"+key);
+    for (const QString &key : keyList) {
+        if (!jroot.contains(key)) {
+            emit cppApp->showMsg("get token数据错误", "未找到" + key);
             enableMenu();
             return;
         }
 
-        if(key=="expires_in") {
-            uint expires=QDateTime::currentDateTime().toTime_t() + jroot["expires_in"].toInt();
+        if (key == "expires_in") {
+            uint expires = QDateTime::currentDateTime().toTime_t() + jroot["expires_in"].toInt();
             cppApp->settings.setValue("pcs/expires", expires);
         }
         else
-            cppApp->settings.setValue("pcs/"+key, jroot[key].toVariant());
+            cppApp->settings.setValue("pcs/" + key, jroot[key].toVariant());
     }
 
     doJob();
@@ -101,32 +106,32 @@ void BaiduPcsSync::getTokenFinished()
 void BaiduPcsSync::refreshTokenFinished()
 {
     QJsonParseError err;
-    QJsonDocument jd=QJsonDocument::fromJson(reply->readAll(), &err);
+    QJsonDocument jd = QJsonDocument::fromJson(reply->readAll(), &err);
     reply->deleteLater();
-    if(err.error != QJsonParseError::NoError) {
+    if (err.error != QJsonParseError::NoError) {
         emit cppApp->showMsg("refresh数据格式错误", err.errorString());
         enableMenu();
         return;
     }
 
-    auto jroot=jd.object();
-    if(jroot.contains("error")) {
+    auto jroot = jd.object();
+    if (jroot.contains("error")) {
         refreshFailed();
         return;
     }
 
-    for(const QString &key : keyList) {
-        if(!jroot.contains(key)) {
+    for (const QString &key : keyList) {
+        if (!jroot.contains(key)) {
             refreshFailed();
             return;
         }
 
-        if(key=="expires_in") {
-            uint expires=QDateTime::currentDateTime().toTime_t() + jroot["expires_in"].toInt();
+        if (key == "expires_in") {
+            uint expires = QDateTime::currentDateTime().toTime_t() + jroot["expires_in"].toInt();
             cppApp->settings.setValue("pcs/expires", expires);
         }
         else
-            cppApp->settings.setValue("pcs/"+key, jroot[key].toVariant());
+            cppApp->settings.setValue("pcs/" + key, jroot[key].toVariant());
     }
 
     doJob();
@@ -134,13 +139,11 @@ void BaiduPcsSync::refreshTokenFinished()
 
 void BaiduPcsSync::syncError(QNetworkReply::NetworkError err)
 {
-    if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).isValid() &&
-            reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt()==401)
-    {
+    if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).isValid() && reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 401) {
         getNewToken();
     }
     else {
-        cppApp->showMsg("同步失败", QString::number(err)+"\n"+reply->readAll());
+        cppApp->showMsg("同步失败", QString::number(err) + "\n" + reply->readAll());
         enableMenu();
     }
     reply->deleteLater();
@@ -149,13 +152,13 @@ void BaiduPcsSync::syncError(QNetworkReply::NetworkError err)
 
 void BaiduPcsSync::downloadFinished()
 {
-    if(!replyCheck())
+    if (!replyCheck())
         return;
 }
 
 void BaiduPcsSync::uploadFinished()
 {
-    if(!replyCheck())
+    if (!replyCheck())
         return;
 
     enableMenu();
@@ -164,13 +167,13 @@ void BaiduPcsSync::uploadFinished()
 
 void BaiduPcsSync::tokenCheck()
 {
-    if(syncing)
+    if (syncing)
         return;
-    syncing=true;
-    uint etime=cppApp->settings.value("pcs/expires", 0).toUInt();
-    if(QDateTime::currentDateTime().toTime_t() + 10 >= etime) {
-        QString rt=cppApp->settings.value("pcs/refresh_token").toString();
-        if(rt.isEmpty()) {
+    syncing = true;
+    uint etime = cppApp->settings.value("pcs/expires", 0).toUInt();
+    if (QDateTime::currentDateTime().toTime_t() + 10 >= etime) {
+        QString rt = cppApp->settings.value("pcs/refresh_token").toString();
+        if (rt.isEmpty()) {
             getNewToken();
         }
         else {
@@ -189,25 +192,23 @@ void BaiduPcsSync::getNewToken()
 
 void BaiduPcsSync::doJob()
 {
-    //emit cppApp->showMsg("成功","获得token");
-    if(job==JOB_DOWNLOAD) {
-        QNetworkRequest req(QUrl("https://d.pcs.baidu.com/rest/2.0/pcs/file?method=download&path=%2fpassgen&access_token="+
-                                 cppApp->settings.value("pcs/access_token").toString()));
-        reply=nm.get(req);
+    // emit cppApp->showMsg("成功","获得token");
+    if (job == JOB_DOWNLOAD) {
+        QNetworkRequest req(QUrl("https://d.pcs.baidu.com/rest/2.0/pcs/file?method=download&path=%2fpassgen&access_token=" + cppApp->settings.value("pcs/access_token").toString()));
+        reply = nm.get(req);
         connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(syncError(QNetworkReply::NetworkError)));
         connect(reply, &QNetworkReply::finished, this, &BaiduPcsSync::downloadFinished);
     }
-    else if(job==JOB_UPLOAD) {
-        QNetworkRequest req(QUrl("https://pcs.baidu.com/rest/2.0/pcs/file?method=upload&path=%2fpassgen&ondup=overwrite&access_token="+
-                                 cppApp->settings.value("pcs/access_token").toString()));
-        QHttpMultiPart *mp=new QHttpMultiPart(QHttpMultiPart::FormDataType);
+    else if (job == JOB_UPLOAD) {
+        QNetworkRequest req(QUrl("https://pcs.baidu.com/rest/2.0/pcs/file?method=upload&path=%2fpassgen&ondup=overwrite&access_token=" + cppApp->settings.value("pcs/access_token").toString()));
+        QHttpMultiPart *mp = new QHttpMultiPart(QHttpMultiPart::FormDataType);
         QHttpPart hp;
         hp.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
         hp.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\""));
         hp.setBody(serializeData());
         mp->append(hp);
 
-        reply=nm.post(req, mp);
+        reply = nm.post(req, mp);
         mp->setParent(reply);
         connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(syncError(QNetworkReply::NetworkError)));
         connect(reply, &QNetworkReply::finished, this, &BaiduPcsSync::uploadFinished);
@@ -222,7 +223,7 @@ void BaiduPcsSync::refreshToken()
     postData.addQueryItem("refresh_token", cppApp->settings.value("pcs/refresh_token").toString());
     postData.addQueryItem("client_id", "e5B4NHFV9hUd50pe3uCGMFyO");
     postData.addQueryItem("client_secret", "95VyImDHFzRzyowuk7q4QVIPbBKGT5Il");
-    reply=nm.post(req, postData.toString(QUrl::FullyEncoded).toUtf8());
+    reply = nm.post(req, postData.toString(QUrl::FullyEncoded).toUtf8());
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     connect(reply, &QNetworkReply::finished, this, &BaiduPcsSync::refreshTokenFinished);
 }
@@ -242,27 +243,27 @@ QByteArray BaiduPcsSync::serializeData()
 {
     QByteArray ba;
     QDataStream ds(&ba, QIODevice::WriteOnly);
-    QStringList sl=cppApp->settings.value("usrandsite").toStringList();
+    QStringList sl = cppApp->settings.value("usrandsite").toStringList();
     ds << sl;
-    for(const QString &s : sl) {
-        ds << cppApp->settings.value(s+"/spinlength", 16).toUInt()
-           << cppApp->settings.value(s+"/checkdx", true).toBool()
-           << cppApp->settings.value(s+"/checkxx", true).toBool()
-           << cppApp->settings.value(s+"/checksz", true).toBool()
-           << cppApp->settings.value(s+"/checkts", true).toBool();
+    for (const QString &s : sl) {
+        ds << cppApp->settings.value(s + "/spinlength", 16).toUInt()
+           << cppApp->settings.value(s + "/checkdx", true).toBool()
+           << cppApp->settings.value(s + "/checkxx", true).toBool()
+           << cppApp->settings.value(s + "/checksz", true).toBool()
+           << cppApp->settings.value(s + "/checkts", true).toBool();
     }
-    ba=qCompress(ba);
+    ba = qCompress(ba);
     return ba;
 }
 
 bool BaiduPcsSync::replyCheck()
 {
-    if(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).isValid()) {
-        int hs=reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        if(hs==401)
+    if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).isValid()) {
+        int hs = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (hs == 401)
             getNewToken();
-        else if(hs!=200) {
-            cppApp->showMsg("同步失败", QString::number(hs)+"\n"+reply->readAll());
+        else if (hs != 200) {
+            cppApp->showMsg("同步失败", QString::number(hs) + "\n" + reply->readAll());
             enableMenu();
         }
         reply->deleteLater();

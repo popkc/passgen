@@ -14,25 +14,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "pch.h"
 #include "cppapp.h"
+#include "pch.h"
 
-CppApp* cppApp;
+CppApp *cppApp;
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
-    cppApp=new CppApp();
-    engine.rootContext()->setContextProperty("cppApp",cppApp);
-    
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
-    
-    cppApp->root=engine.rootObjects()[0];
+    cppApp = new CppApp();
+    engine.rootContext()->setContextProperty("cppApp", cppApp);
 
-    //auto k=qgetenv("LD_LIBRARY_PATH");
-    //qInfo()<<k;
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+    cppApp->root = engine.rootObjects()[0];
+
+    // auto k=qgetenv("LD_LIBRARY_PATH");
+    // qInfo()<<k;
 
     return app.exec();
 }

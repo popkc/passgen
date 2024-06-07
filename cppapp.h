@@ -29,14 +29,14 @@ public:
     QObject *root;
     QSettings settings;
     BaiduPcsSync *bps;
-    
-    Q_INVOKABLE void setSettingsValue(const QString &key,const QVariant &value);
-    Q_INVOKABLE QVariant getSettingsValue(const QString &key,const QVariant &defaultValue=QVariant());
-    Q_INVOKABLE QVariant getStringList(const QString &key,const QVariant &defaultValue=QVariant());
-    Q_INVOKABLE QVariant getBool(const QString &key,const QVariant &defaultValue=QVariant());
+
+    Q_INVOKABLE void setSettingsValue(const QString &key, const QVariant &value);
+    Q_INVOKABLE QVariant getSettingsValue(const QString &key, const QVariant &defaultValue = QVariant());
+    Q_INVOKABLE QVariant getStringList(const QString &key, const QVariant &defaultValue = QVariant());
+    Q_INVOKABLE QVariant getBool(const QString &key, const QVariant &defaultValue = QVariant());
     Q_INVOKABLE void removeSettings(const QString &key);
-    Q_INVOKABLE const QString genPass(const QString &user,const QString &basepass,const QString &site,int len,
-                                      bool dx,bool xx,bool sz,bool ts);
+    Q_INVOKABLE const QString genPass(const QString &user, const QString &basepass, const QString &site, int len,
+        bool dx, bool xx, bool sz, bool ts);
     Q_INVOKABLE QStringList insertString(QStringList sl, const QString &s);
 
     Q_INVOKABLE void syncDownload();
@@ -52,6 +52,6 @@ signals:
 public slots:
 };
 
-extern CppApp* cppApp;
+extern CppApp *cppApp;
 
 #endif // CPPAPP_H
